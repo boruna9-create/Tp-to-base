@@ -1,0 +1,1 @@
+print("TP TO BASE SCRIPT LOADED")
