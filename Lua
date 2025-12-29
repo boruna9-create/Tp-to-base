@@ -1,0 +1,105 @@
+--// Services
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+-- Wait until Character is fully loaded
+repeat task.wait() until LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+-- GUI
+local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+gui.Name = "RawTP_GUI"
+
+-- Frame
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 250, 0, 150)
+frame.Position = UDim2.new(0.02, 0, 0.5, 0)
+frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+frame.Active = true
+frame.Draggable = true
+
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+
+local label = Instance.new("TextLabel", frame)
+label.Size = UDim2.new(1, 0, 0, 30)
+label.Text = "🚀 RAW TELEPORT"
+label.TextColor3 = Color3.fromRGB(255, 255, 255)
+label.Font = Enum.Font.GothamBold
+label.TextSize = 16
+label.BackgroundTransparency = 1
+
+-- Save Button
+local saveBtn = Instance.new("TextButton", frame)
+saveBtn.Size = UDim2.new(0.9, 0, 0, 40)
+saveBtn.Position = UDim2.new(0.05, 0, 0.35, 0)
+saveBtn.Text = "📌 Save Current Position"
+saveBtn.Font = Enum.Font.Gotham
+saveBtn.TextSize = 14
+saveBtn.TextColor3 = Color3.new(1,1,1)
+saveBtn.BackgroundColor3 = Color3.fromRGB(42, 130, 60)
+Instance.new("UICorner", saveBtn).CornerRadius = UDim.new(0, 8)
+
+-- Teleport Button
+local tpBtn = Instance.new("TextButton", frame)
+tpBtn.Size = UDim2.new(0.9, 0, 0, 40)
+tpBtn.Position = UDim2.new(0.05, 0, 0.65, 0)
+tpBtn.Text = "🚀 Force Teleport"
+tpBtn.Font = Enum.Font.Gotham
+tpBtn.TextSize = 14
+tpBtn.TextColor3 = Color3.new(1,1,1)
+tpBtn.BackgroundColor3 = Color3.fromRGB(150, 60, 60)
+Instance.new("UICorner", tpBtn).CornerRadius = UDim.new(0, 8)
+
+-- Save Spot
+local savedCFrame = nil
+
+saveBtn.MouseButton1Click:Connect(function()
+	local char = LocalPlayer.Character
+	if char and char:FindFirstChild("HumanoidRootPart") then
+		savedCFrame = char.HumanoidRootPart.CFrame
+		print("[📌] Position Saved!", tostring(savedCFrame.Position))
+	end
+end)
+
+-- ⚠️ RAW FORCE TELEPORT FUNCTION
+tpBtn.MouseButton1Click:Connect(function()
+	if not savedCFrame then
+		warn("No position saved yet!")
+		return
+	end
+
+	local char = LocalPlayer.Character
+	if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+
+	local hrp = char:FindFirstChild("HumanoidRootPart")
+
+	-- ⚠️ REMOVE Humanoid STATES TEMPORARILY
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	if hum then
+		hum.PlatformStand = true
+	end
+
+	-- ⚡ Stop ALL movement
+	if hrp:FindFirstChild("Velocity") then
+		hrp.Velocity = Vector3.zero
+	end
+	hrp.AssemblyLinearVelocity = Vector3.zero
+	hrp.RotVelocity = Vector3.zero
+	hrp.AssemblyAngularVelocity = Vector3.zero
+
+	-- ⚡ Force-Anchor Character + Reapply CFrame
+	hrp.Anchored = true
+	RunService.Heartbeat:Wait()
+	hrp.CFrame = savedCFrame + Vector3.new(0, 5, 0)
+	RunService.Heartbeat:Wait()
+	hrp.Anchored = false
+
+	task.wait(0.15)
+
+	-- ✅ Put back control
+	if hum then
+		hum.PlatformStand = false
+	end
+
+	print("[🚀] Forced teleport successful:", savedCFrame.Position)
+end)
